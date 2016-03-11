@@ -12,6 +12,15 @@ do
   if [ "${event_type}" = 'CREATE' ]
   then
     echo "new file: ${filename}"
-    mv -v ${filename} ${OUTGOING_FOLDER}
+    OIFS=$IFS; IFS=': '
+    set -- $(exiv2 -g Exif.Image.DateTime -Pv ${filename})
+    IFS=$OIFS;
+    if [ -n "$1" ]
+    then
+      outgoing_relative_path=$(realpath --relative-to=$(dirname ${filename}) ${OUTGOING_FOLDER})
+      mkdir -p ${OUTGOING_FOLDER}/$1/$2/$3
+      exiv2 -T ${filename}
+      exiv2 mv ${filename} -r ${outgoing_relative_path}/%Y/%m/%d/IMG_%Y%m%d_%H%M%S
+    fi
   fi
 done
